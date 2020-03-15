@@ -3,6 +3,29 @@
 #### 项目介绍
 &#160; &#160; &#160; &#160; AXI4总线连接器，将最多4个AXI4总线主设备连接到最多8个AXI4总线从设备。
 
+#### 文件结构
+
+### 工程结构
+
+- AXI4_Interconnect.sv   
+    - AXI_Arbiter.sv    
+        - AXI_Arbiter_W.sv    
+        - AXI_Arbiter_R.sv
+    - AXI_Master_Mux.sv
+    - AXI_Slave_Mux.sv
+
+### 仿真结构
+
+- AXI4_Interconnect_TB.sv
+    - AXI_Master.sv
+    - AXI4_Interconnect.sv
+        - AXI_Arbiter.sv
+            - AXI_Arbiter_W.sv
+            - AXI_Arbiter_R.sv
+        - AXI_Master_Mux.sv
+        - AXI_Slave_Mux.sv
+    - AXI_Slave.sv
+
 #### 日志
 
 * 首次更新 `2020.3.15`
