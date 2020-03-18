@@ -20,7 +20,7 @@
 - AXI4_Interconnect_TB.sv
     - AXI_Master.sv
     - AXI4_Interconnect.sv
-        - AXI_Arbiter_W.sv    
+        - AXI_Arbiter_W.sv
         - AXI_Arbiter_R.sv
         - AXI_Master_Mux_W.sv
         - AXI_Master_Mux_R.sv
