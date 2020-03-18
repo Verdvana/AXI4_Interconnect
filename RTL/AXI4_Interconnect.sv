@@ -8,11 +8,20 @@
 //
 //Version 	Design		Coding		Simulata	  Review		Rel data
 //V1.0		Verdvana	Verdvana	Verdvana		  			2020-3-13
+//V1.1		Verdvana	Verdvana	Verdvana		  			2020-3-16
 //
 //------------------------------------------------------------------------------
 //
 //Version	Modified History
-//V1.0		
+//V1.0		4个AXI4总线主设备接口；
+//          8个AXI4总线从设备接口；
+//          从设备地址隐藏与读写地址的高三位；
+//          主设备仲裁优先级随上一次总线所有者向后顺延；
+//          Cyclone IV EP4CE30F29C8上综合后最高时钟频率可达80MHz+。
+//
+//V1.1      优化电路结构，状态机判断主设备握手请求信号后直接输出到对应从设备，省去一层MUX；
+//          数据、地址、ID、USER位宽可设置;
+//          时序不变，综合后最高时钟频率提高至100MHz+。
 //
 //=============================================================================
 
@@ -31,7 +40,7 @@ module AXI4_Interconnect#(
     /********** 0号主控 **********/
     //写地址通道
 	input      [ID_WIDTH-1:0]   m0_AWID,
-    input	   [ADDR_WIDTH-1:0] m0_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0] m0_AWADDR,
     input      [7:0]            m0_AWLEN,
     input      [7:0]            m0_AWSIZE,
     input      [2:0]            m0_AWBURST,
@@ -40,7 +49,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m0_AWPROT,
     input      [3:0]            m0_AWQOS,
     input      [3:0]            m0_AWREGION,
-    input      [USER_WIDTH-1:0] m0_AWUSER,*/
+    input      [USER_WIDTH-1:0] m0_AWUSER,
     input                       m0_AWVALID,
     output                      m0_AWREADY,
     //写数据通道
@@ -56,7 +65,7 @@ module AXI4_Interconnect#(
     input                       m0_BREADY,
     //读地址通道
     input      [ID_WIDTH-1:0]   m0_ARID,
-    input      [ADDR_WIDTH-1:0] m0_ARADDR,/*
+    input      [ADDR_WIDTH-1:0] m0_ARADDR,
     input      [7:0]            m0_ARLEN,
     input      [2:0]            m0_ARSIZE,
     input      [1:0]            m0_ARBURST,
@@ -65,7 +74,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m0_ARPROT,
     input      [3:0]            m0_ARQOS,
     input      [3:0]            m0_ARREGION,
-    input      [USER_WIDTH-1:0] m0_ARUSER,*/
+    input      [USER_WIDTH-1:0] m0_ARUSER,
     input                       m0_ARVALID,
     output                      m0_ARREADY,
     //读数据通道
@@ -74,7 +83,7 @@ module AXI4_Interconnect#(
     /********** 1号主控 **********/
     //写地址通道
     input      [ID_WIDTH-1:0]   m1_AWID,
-    input	   [ADDR_WIDTH-1:0]	m1_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m1_AWADDR,
     input      [7:0]            m1_AWLEN,
     input      [7:0]            m1_AWSIZE,
     input      [2:0]            m1_AWBURST,
@@ -83,7 +92,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m1_AWPROT,
     input      [3:0]            m1_AWQOS,
     input      [3:0]            m1_AWREGION,
-    input      [USER_WIDTH-1:0] m1_AWUSER,*/
+    input      [USER_WIDTH-1:0] m1_AWUSER,
     input                       m1_AWVALID,
     output                      m1_AWREADY,
     //写数据通道
@@ -99,7 +108,7 @@ module AXI4_Interconnect#(
     input                       m1_BREADY,
     //读地址通道
     input      [ID_WIDTH-1:0]   m1_ARID,
-    input      [ADDR_WIDTH-1:0] m1_ARADDR,/*
+    input      [ADDR_WIDTH-1:0] m1_ARADDR,
     input      [7:0]            m1_ARLEN,
     input      [2:0]            m1_ARSIZE,
     input      [1:0]            m1_ARBURST,
@@ -108,7 +117,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m1_ARPROT,
     input      [3:0]            m1_ARQOS,
     input      [3:0]            m1_ARREGION,
-    input      [USER_WIDTH-1:0] m1_ARUSER,*/
+    input      [USER_WIDTH-1:0] m1_ARUSER,
     input                       m1_ARVALID,
     output                      m1_ARREADY,
     //读数据通道
@@ -117,7 +126,7 @@ module AXI4_Interconnect#(
     /********** 2号主控 **********/
     //写地址通道
     input      [ID_WIDTH-1:0]   m2_AWID,
-    input	   [ADDR_WIDTH-1:0]	m2_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m2_AWADDR,
     input      [7:0]            m2_AWLEN,
     input      [7:0]            m2_AWSIZE,
     input      [2:0]            m2_AWBURST,
@@ -126,7 +135,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m2_AWPROT,
     input      [3:0]            m2_AWQOS,
     input      [3:0]            m2_AWREGION,
-    input      [USER_WIDTH-1:0] m2_AWUSER,*/
+    input      [USER_WIDTH-1:0] m2_AWUSER,
     input                       m2_AWVALID,
     output                      m2_AWREADY,
     //写数据通道
@@ -142,7 +151,7 @@ module AXI4_Interconnect#(
     input                       m2_BREADY,
     //读地址通道
     input      [ID_WIDTH-1:0]   m2_ARID,
-    input      [ADDR_WIDTH-1:0] m2_ARADDR,/*
+    input      [ADDR_WIDTH-1:0] m2_ARADDR,
     input      [7:0]            m2_ARLEN,
     input      [2:0]            m2_ARSIZE,
     input      [1:0]            m2_ARBURST,
@@ -151,7 +160,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m2_ARPROT,
     input      [3:0]            m2_ARQOS,
     input      [3:0]            m2_ARREGION,
-    input      [USER_WIDTH-1:0] m2_ARUSER,*/
+    input      [USER_WIDTH-1:0] m2_ARUSER,
     input                       m2_ARVALID,
     output                      m2_ARREADY,
     //读数据通道
@@ -160,7 +169,7 @@ module AXI4_Interconnect#(
     /********** 3号主控 **********/
     //写地址通道
     input      [ID_WIDTH-1:0]   m3_AWID,
-    input	   [ADDR_WIDTH-1:0]	m3_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m3_AWADDR,
     input      [7:0]            m3_AWLEN,
     input      [7:0]            m3_AWSIZE,
     input      [2:0]            m3_AWBURST,
@@ -169,7 +178,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m3_AWPROT,
     input      [3:0]            m3_AWQOS,
     input      [3:0]            m3_AWREGION,
-    input      [USER_WIDTH-1:0] m3_AWUSER,*/
+    input      [USER_WIDTH-1:0] m3_AWUSER,
     input                       m3_AWVALID,
     output                      m3_AWREADY,
     //写数据通道
@@ -185,7 +194,7 @@ module AXI4_Interconnect#(
     input                       m3_BREADY,
     //读地址通道
     input      [ID_WIDTH-1:0]   m3_ARID,
-    input      [ADDR_WIDTH-1:0] m3_ARADDR,/*
+    input      [ADDR_WIDTH-1:0] m3_ARADDR,
     input      [7:0]            m3_ARLEN,
     input      [2:0]            m3_ARSIZE,
     input      [1:0]            m3_ARBURST,
@@ -194,7 +203,7 @@ module AXI4_Interconnect#(
     input      [2:0]            m3_ARPROT,
     input      [3:0]            m3_ARQOS,
     input      [3:0]            m3_ARREGION,
-    input      [USER_WIDTH-1:0] m3_ARUSER,*/
+    input      [USER_WIDTH-1:0] m3_ARUSER,
     input                       m3_ARVALID,
     output                      m3_ARREADY,
     //读数据通道
@@ -436,40 +445,6 @@ module AXI4_Interconnect#(
     output     [USER_WIDTH-1:0] s_ARUSER   
 );
 
-    //=========================================================
-    //信号定义
-/*
-    //---------------------------------------------------------
-    //主控读写通道响应信号
-    logic   m0_wgrnt;
-    logic   m0_rgrnt;
-    logic   m1_wgrnt;
-    logic   m1_rgrnt;
-    logic   m2_wgrnt;
-    logic   m2_rgrnt;
-    logic   m3_wgrnt;
-    logic   m3_rgrnt;
-    //---------------------------------------------------------
-    //主控通用信号
-    logic   m_AWREADY;
-    logic   m_BVALID;
-    logic   m_WREADY;
-    logic   m_ARREADY;
-    logic   m_RVALID;
-    //---------------------------------------------------------
-    //从机通用信号
-    logic   s_AWVALID;
-    logic   s_WVALID;
-    logic   s_BREADY;
-    logic   s_ARVALID;
-    logic   s_RREADY;
-
-    logic [2:0] slave_awaddr;
-    logic [2:0] slave_araddr;
-
-    assign slave_awaddr = s_AWADDR[ADDR_WIDTH-1-:3];
-    assign slave_araddr = s_ARADDR[ADDR_WIDTH-1-:3];
-*/
 
     //=========================================================
     //仲裁器例化
@@ -488,23 +463,4 @@ module AXI4_Interconnect#(
         .USER_WIDTH(USER_WIDTH)
     )AXI_Arbiter_R(.*);
 
-/*
-    //=========================================================
-    //主控用多路复用器例化
-    AXI_Master_Mux#(
-        .DATA_WIDTH(DATA_WIDTH),
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .ID_WIDTH(ID_WIDTH),
-        .USER_WIDTH(USER_WIDTH),
-        .STRB_WIDTH(STRB_WIDTH)
-    )u_AXI_Master_Mux(.*);
-
-    //=========================================================
-    //从机用多路复用器例化
-    AXI_Slave_Mux #(
-        .DATA_WIDTH(DATA_WIDTH),
-        .ID_WIDTH(ID_WIDTH),
-        .USER_WIDTH(USER_WIDTH)
-    )u_AXI_Slave_Mux(.*);
-*/
 endmodule

@@ -8,11 +8,20 @@
 //
 //Version 	Design		Coding		Simulata	  Review		Rel data
 //V1.0		Verdvana	Verdvana	Verdvana		  			2020-3-13
+//V1.1		Verdvana	Verdvana	Verdvana		  			2020-3-16
 //
 //------------------------------------------------------------------------------
 //
 //Version	Modified History
-//V1.0		
+//V1.0		4个AXI4总线主设备接口；
+//          8个AXI4总线从设备接口；
+//          从设备地址隐藏与读写地址的高三位；
+//          主设备仲裁优先级随上一次总线所有者向后顺延；
+//          Cyclone IV EP4CE30F29C8上综合后最高时钟频率可达80MHz+。
+//
+//V1.1      优化电路结构，状态机判断主设备握手请求信号后直接输出到对应从设备，省去一层MUX；
+//          数据、地址、ID、USER位宽可设置;
+//          时序不变，综合后最高时钟频率提高至100MHz+。
 //
 //=============================================================================
 
@@ -30,7 +39,7 @@ module AXI_Arbiter_W#(
 	input      	    ARESETn,
 	/********** 0号主控 **********/
 	input      [ID_WIDTH-1:0]   m0_AWID,
-    input	   [ADDR_WIDTH-1:0] m0_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0] m0_AWADDR,
     input      [7:0]            m0_AWLEN,
     input      [7:0]            m0_AWSIZE,
     input      [2:0]            m0_AWBURST,
@@ -39,7 +48,7 @@ module AXI_Arbiter_W#(
     input      [2:0]            m0_AWPROT,
     input      [3:0]            m0_AWQOS,
     input      [3:0]            m0_AWREGION,
-    input      [USER_WIDTH-1:0] m0_AWUSER,*/
+    input      [USER_WIDTH-1:0] m0_AWUSER,
     input                       m0_AWVALID,
     output reg                  m0_AWREADY,
     input      [ID_WIDTH-1:0]   m0_WID,
@@ -53,7 +62,7 @@ module AXI_Arbiter_W#(
     input                       m0_BREADY,
 	/********** 1号主控 **********/
     input      [ID_WIDTH-1:0]   m1_AWID,
-    input	   [ADDR_WIDTH-1:0]	m1_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m1_AWADDR,
     input      [7:0]            m1_AWLEN,
     input      [7:0]            m1_AWSIZE,
     input      [2:0]            m1_AWBURST,
@@ -62,7 +71,7 @@ module AXI_Arbiter_W#(
     input      [2:0]            m1_AWPROT,
     input      [3:0]            m1_AWQOS,
     input      [3:0]            m1_AWREGION,
-    input      [USER_WIDTH-1:0] m1_AWUSER,*/
+    input      [USER_WIDTH-1:0] m1_AWUSER,
     input                       m1_AWVALID,
     output reg                  m1_AWREADY,
     //写数据通道
@@ -78,7 +87,7 @@ module AXI_Arbiter_W#(
     input                       m1_BREADY,
 	/********** 2号主控 **********/
     input      [ID_WIDTH-1:0]   m2_AWID,
-    input	   [ADDR_WIDTH-1:0]	m2_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m2_AWADDR,
     input      [7:0]            m2_AWLEN,
     input      [7:0]            m2_AWSIZE,
     input      [2:0]            m2_AWBURST,
@@ -87,7 +96,7 @@ module AXI_Arbiter_W#(
     input      [2:0]            m2_AWPROT,
     input      [3:0]            m2_AWQOS,
     input      [3:0]            m2_AWREGION,
-    input      [USER_WIDTH-1:0] m2_AWUSER,*/
+    input      [USER_WIDTH-1:0] m2_AWUSER,
     input                       m2_AWVALID,
     output reg                  m2_AWREADY,
     //写数据通道
@@ -103,7 +112,7 @@ module AXI_Arbiter_W#(
     input                       m2_BREADY,
 	/********** 3号主控 **********/
 	input      [ID_WIDTH-1:0]   m3_AWID,
-    input	   [ADDR_WIDTH-1:0]	m3_AWADDR,/*
+    input	   [ADDR_WIDTH-1:0]	m3_AWADDR,
     input      [7:0]            m3_AWLEN,
     input      [7:0]            m3_AWSIZE,
     input      [2:0]            m3_AWBURST,
@@ -112,7 +121,7 @@ module AXI_Arbiter_W#(
     input      [2:0]            m3_AWPROT,
     input      [3:0]            m3_AWQOS,
     input      [3:0]            m3_AWREGION,
-    input      [USER_WIDTH-1:0] m3_AWUSER,*/
+    input      [USER_WIDTH-1:0] m3_AWUSER,
     input                       m3_AWVALID,
     output reg                  m3_AWREADY,
     //写数据通道
@@ -474,7 +483,7 @@ module AXI_Arbiter_W#(
             AXI_W_MASTER_0,
             AXI_B_MASTER_0: begin
                 s_AWID      = m0_AWID;
-                s_AWADDR    = m0_AWADDR;/*
+                s_AWADDR    = m0_AWADDR;
                 s_AWLEN     = m0_AWLEN;
                 s_AWSIZE    = m0_AWSIZE;
                 s_AWBURST   = m0_AWBURST;
@@ -483,7 +492,7 @@ module AXI_Arbiter_W#(
                 s_AWPROT    = m0_AWPROT;
                 s_AWQOS     = m0_AWQOS;
                 s_AWREGION  = m0_AWREGION;
-                s_AWUSER    = m0_AWUSER;*/
+                s_AWUSER    = m0_AWUSER;
                 s_AWVALID   = m0_AWVALID;
                 s_WID       = m0_WID;
                 s_WDATA     = m0_WDATA;
@@ -510,7 +519,7 @@ module AXI_Arbiter_W#(
             AXI_W_MASTER_1,
             AXI_B_MASTER_1: begin
                 s_AWID      = m1_AWID;
-                s_AWADDR    = m1_AWADDR;/*
+                s_AWADDR    = m1_AWADDR;
                 s_AWLEN     = m1_AWLEN;
                 s_AWSIZE    = m1_AWSIZE;
                 s_AWBURST   = m1_AWBURST;
@@ -519,7 +528,7 @@ module AXI_Arbiter_W#(
                 s_AWPROT    = m1_AWPROT;
                 s_AWQOS     = m1_AWQOS;
                 s_AWREGION  = m1_AWREGION;
-                s_AWUSER    = m1_AWUSER;*/
+                s_AWUSER    = m1_AWUSER;
                 s_AWVALID   = m1_AWVALID;
                 s_WID       = m1_WID;
                 s_WDATA     = m1_WDATA;
@@ -546,7 +555,7 @@ module AXI_Arbiter_W#(
             AXI_W_MASTER_2,
             AXI_B_MASTER_2: begin
                 s_AWID      = m2_AWID;
-                s_AWADDR    = m2_AWADDR;/*
+                s_AWADDR    = m2_AWADDR;
                 s_AWLEN     = m2_AWLEN;
                 s_AWSIZE    = m2_AWSIZE;
                 s_AWBURST   = m2_AWBURST;
@@ -555,7 +564,7 @@ module AXI_Arbiter_W#(
                 s_AWPROT    = m2_AWPROT;
                 s_AWQOS     = m2_AWQOS;
                 s_AWREGION  = m2_AWREGION;
-                s_AWUSER    = m2_AWUSER;*/
+                s_AWUSER    = m2_AWUSER;
                 s_AWVALID   = m2_AWVALID;
                 s_WID       = m2_WID;
                 s_WDATA     = m2_WDATA;
@@ -582,7 +591,7 @@ module AXI_Arbiter_W#(
             AXI_W_MASTER_3,
             AXI_B_MASTER_3: begin
                 s_AWID      = m3_AWID;
-                s_AWADDR    = m3_AWADDR;/*
+                s_AWADDR    = m3_AWADDR;
                 s_AWLEN     = m3_AWLEN;
                 s_AWSIZE    = m3_AWSIZE;
                 s_AWBURST   = m3_AWBURST;
@@ -591,7 +600,7 @@ module AXI_Arbiter_W#(
                 s_AWPROT    = m3_AWPROT;
                 s_AWQOS     = m3_AWQOS;
                 s_AWREGION  = m3_AWREGION;
-                s_AWUSER    = m3_AWUSER;*/
+                s_AWUSER    = m3_AWUSER;
                 s_AWVALID   = m3_AWVALID;
                 s_WID       = m3_WID;
                 s_WDATA     = m3_WDATA;
@@ -616,7 +625,7 @@ module AXI_Arbiter_W#(
             end
             default:        begin
                 s_AWID      = '0;
-                s_AWADDR    = '0;/*
+                s_AWADDR    = '0;
                 s_AWLEN     = '0;
                 s_AWSIZE    = '0;
                 s_AWBURST   = '0;
@@ -625,7 +634,7 @@ module AXI_Arbiter_W#(
                 s_AWPROT    = '0;
                 s_AWQOS     = '0;
                 s_AWREGION  = '0;
-                s_AWUSER    = '0;*/
+                s_AWUSER    = '0;
                 s_AWVALID   = '0;
                 s_WID       = '0;
                 s_WDATA     = '0;
