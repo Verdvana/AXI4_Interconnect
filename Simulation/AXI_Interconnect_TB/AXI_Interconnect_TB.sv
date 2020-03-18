@@ -1,6 +1,6 @@
 //=============================================================================
 //
-//Module Name:					AXI4_Interconnect_TB.sv
+//Module Name:					AXI_Interconnect_TB.sv
 //Department:					Xidian University
 //Function Description:	        AXI总线连接器测试 
 //
@@ -18,7 +18,7 @@
 
 `timescale 1ns/1ns
 
-module AXI4_Interconnect_TB;
+module AXI_Interconnect_TB;
 
     /**********时钟&复位**********/
 	logic           ACLK;
@@ -199,7 +199,13 @@ module AXI4_Interconnect_TB;
 
     //=========================================================
     //AXI4连接器例化
-    AXI4_Interconnect u_AXI4_Interconnect(
+    AXI_Interconnect#(
+        .DATA_WIDTH(1024),
+        .ADDR_WIDTH(64),
+        .ID_WIDTH(32),
+        .USER_WIDTH(1024),
+        .STRB_WIDTH(128)
+    )u_AXI_Interconnect(
     .ACLK           (ACLK),
 	.ARESETn        (ARESETn),
 

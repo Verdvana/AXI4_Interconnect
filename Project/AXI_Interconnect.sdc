@@ -1,4 +1,4 @@
-## Generated SDC file "AXI4_Interconnect.sdc"
+## Generated SDC file "AXI_Interconnect.sdc"
 
 ## Copyright (C) 2018  Intel Corporation. All rights reserved.
 ## Your use of Intel Corporation's design tools, logic functions 
@@ -19,10 +19,10 @@
 ## PROGRAM "Quartus Prime"
 ## VERSION "Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition"
 
-## DATE    "Tue Mar 17 18:11:47 2020"
+## DATE    "Wed Mar 18 15:47:08 2020"
 
 ##
-## DEVICE  "EP4CE115F29C8"
+## DEVICE  "EP4CE30F29C8"
 ##
 
 
@@ -38,7 +38,7 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {ACLK} -period 10.000 -waveform { 0.000 5.000 } [get_ports { ACLK }]
+create_clock -name {ACLK} -period 2.500 -waveform { 0.000 1.250 } [get_ports { ACLK }]
 
 
 #**************************************************************

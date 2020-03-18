@@ -1,6 +1,6 @@
 //=============================================================================
 //
-//Module Name:					AXI4_Interconnect.sv
+//Module Name:					AXI_Interconnect.sv
 //Department:					Xidian University
 //Function Description:	        AXI总线连接器
 //
@@ -9,6 +9,7 @@
 //Version 	Design		Coding		Simulata	  Review		Rel data
 //V1.0		Verdvana	Verdvana	Verdvana		  			2020-3-13
 //V1.1		Verdvana	Verdvana	Verdvana		  			2020-3-16
+//V1.2		Verdvana	Verdvana	Verdvana		  			2020-3-18
 //
 //------------------------------------------------------------------------------
 //
@@ -21,18 +22,21 @@
 //
 //V1.1      优化电路结构，状态机判断主设备握手请求信号后直接输出到对应从设备，省去一层MUX；
 //          数据、地址、ID、USER位宽可设置;
-//          时序不变，综合后最高时钟频率提高至100MHz+。
+//          时序不变，综合后最高时钟频率提高至100MHz+。	
+//
+//V1.2      进一步优化电路结构，精简状态机的状态；
+//          时序不变，综合后最高时钟频率提高至400MHz。	
 //
 //=============================================================================
 
 `timescale 1ns/1ns
 
-module AXI4_Interconnect#(
-    parameter   DATA_WIDTH  = 8,
-                ADDR_WIDTH  = 8,
-                ID_WIDTH    = 1,
-                USER_WIDTH  = 1,
-                STRB_WIDTH  = (DATA_WIDTH/8)
+module AXI_Interconnect#(
+    parameter   DATA_WIDTH  = 1024,             //数据位宽
+                ADDR_WIDTH  = 64,               //地址位宽              
+                ID_WIDTH    = 32,               //ID位宽
+                USER_WIDTH  = 1024,             //USER位宽
+                STRB_WIDTH  = (DATA_WIDTH/8)    //STRB位宽
 )(
 	/********* 时钟&复位 *********/
 	input                       ACLK,
@@ -334,7 +338,7 @@ module AXI4_Interconnect#(
 	input	  		            s4_ARREADY,
     //读数据通道
 	input	   [ID_WIDTH-1:0]   s4_RID,
-	input	   [DATA_WIDTH:0]   s4_RDATA,
+	input	   [DATA_WIDTH-1:0] s4_RDATA,
 	input	   [1:0]	        s4_RRESP,
 	input	  		            s4_RLAST,
 	input	   [USER_WIDTH-1:0]	s4_RUSER,
@@ -358,7 +362,7 @@ module AXI4_Interconnect#(
 	input	  		            s5_ARREADY,
     //读数据通道
 	input	   [ID_WIDTH-1:0]   s5_RID,
-	input	   [DATA_WIDTH:0]   s5_RDATA,
+	input	   [DATA_WIDTH-1:0] s5_RDATA,
 	input	   [1:0]	        s5_RRESP,
 	input	  		            s5_RLAST,
 	input	   [USER_WIDTH-1:0]	s5_RUSER,
@@ -382,7 +386,7 @@ module AXI4_Interconnect#(
 	input	  		            s6_ARREADY,
     //读数据通道
 	input	   [ID_WIDTH-1:0]   s6_RID,
-	input	   [DATA_WIDTH:0]   s6_RDATA,
+	input	   [DATA_WIDTH-1:0] s6_RDATA,
 	input	   [1:0]	        s6_RRESP,
 	input	  		            s6_RLAST,
 	input	   [USER_WIDTH-1:0]	s6_RUSER,
@@ -406,7 +410,7 @@ module AXI4_Interconnect#(
 	input	  		            s7_ARREADY,
     //读数据通道
 	input	   [ID_WIDTH-1:0]   s7_RID,
-	input	   [DATA_WIDTH:0]   s7_RDATA,
+	input	   [DATA_WIDTH-1:0] s7_RDATA,
 	input	   [1:0]	        s7_RRESP,
 	input	  		            s7_RLAST,
 	input	   [USER_WIDTH-1:0]	s7_RUSER,
@@ -427,7 +431,7 @@ module AXI4_Interconnect#(
     output     [USER_WIDTH-1:0] s_AWUSER,  
     //写数据通道
     output     [ID_WIDTH-1:0]   s_WID,
-    output     [DATA_WIDTH:0]   s_WDATA,
+    output     [DATA_WIDTH-1:0] s_WDATA,
     output     [STRB_WIDTH-1:0] s_WSTRB,
     output                      s_WLAST,
     output     [USER_WIDTH-1:0] s_WUSER,
@@ -447,20 +451,71 @@ module AXI4_Interconnect#(
 
 
     //=========================================================
-    //仲裁器例化
-    AXI_Arbiter_W#(
+    //中建信号
+    logic       m0_wgrnt;
+    logic       m1_wgrnt;
+    logic       m2_wgrnt;
+    logic       m3_wgrnt;
+    logic       m0_rgrnt;
+    logic       m1_rgrnt;
+    logic       m2_rgrnt;
+    logic       m3_rgrnt;
+
+    logic       m_AWREADY;
+    logic       m_WREADY;
+    logic       m_BVALID;
+    logic       m_ARREADY;
+    logic       m_RVALID;
+
+    logic       s_AWVALID;
+    logic       s_WVALID;
+    logic       s_BREADY; 
+    logic       s_ARVALID;
+    logic       s_RREADY;  
+
+    //=========================================================
+    //写通道仲裁器例化
+    AXI_Arbiter_W u_AXI_Arbiter_W(.*);
+
+    //=========================================================
+    //读通道仲裁器例化
+    AXI_Arbiter_R u_AXI_Arbiter_R(.*);
+
+    //=========================================================
+    //写通道主机用多路复用器
+    AXI_Master_Mux_W #(
         .DATA_WIDTH(DATA_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),
         .ID_WIDTH(ID_WIDTH),
         .USER_WIDTH(USER_WIDTH),
         .STRB_WIDTH(STRB_WIDTH)
-    )AXI_Arbiter_W(.*);
+    )u_AXI_Master_Mux_W(.*);
 
-    AXI_Arbiter_R#(
+    //=========================================================
+    //读通道主机用多路复用器
+    AXI_Master_Mux_R #(
         .DATA_WIDTH(DATA_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),
         .ID_WIDTH(ID_WIDTH),
         .USER_WIDTH(USER_WIDTH)
-    )AXI_Arbiter_R(.*);
+    )u_AXI_Master_Mux_R(.*);
+
+    //=========================================================
+    //写通道从机用多路复用器
+    AXI_Slave_Mux_W #(
+        .DATA_WIDTH(DATA_WIDTH),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .ID_WIDTH(ID_WIDTH),
+        .USER_WIDTH(USER_WIDTH)
+    )u_AXI_Slave_Mux_W(.*);
+
+    //=========================================================
+    //读通道从机用多路复用器
+    AXI_Slave_Mux_R #(
+        .DATA_WIDTH(DATA_WIDTH),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .ID_WIDTH(ID_WIDTH),
+        .USER_WIDTH(USER_WIDTH)
+    )u_AXI_Slave_Mux_R(.*);
 
 endmodule

@@ -10,14 +10,22 @@
 - AXI4_Interconnect.sv   
     - AXI_Arbiter_W.sv    
     - AXI_Arbiter_R.sv
+    - AXI_Master_Mux_W.sv
+    - AXI_Master_Mux_R.sv
+    - AXI_Slave_Mux_W.sv
+    - AXI_Slave_Mux_R.sv
 
 ##### 仿真结构
 
 - AXI4_Interconnect_TB.sv
     - AXI_Master.sv
     - AXI4_Interconnect.sv
-        - AXI_Arbiter_W.sv
+        - AXI_Arbiter_W.sv    
         - AXI_Arbiter_R.sv
+        - AXI_Master_Mux_W.sv
+        - AXI_Master_Mux_R.sv
+        - AXI_Slave_Mux_W.sv
+        - AXI_Slave_Mux_R.sv
     - AXI_Slave.sv
 
 #### 日志
@@ -33,6 +41,10 @@
     * 优化电路结构，状态机判断主设备握手请求信号后直接输出到对应从设备，省去一层MUX；
     * 数据、地址、ID、USER位宽可设置;
     * 时序不变，综合后最高时钟频率提高至100MHz+。
+
+* 精简状态机 `2020.3.18`
+    * 进一步优化电路结构，精简状态机的状态；
+    * 时序不变，综合后最高时钟频率提高至400MHz。
 
 * 0号主设备读写0号从设备仿真：
     * ![m0_wr](https://raw.githubusercontent.com/Verdvana/AXI4_Interconnect/master/Simulation/AXI4_Interconnect_TB/m0_wr.jpg)
