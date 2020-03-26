@@ -18,17 +18,23 @@
 
 `timescale 1ns/1ns
 
-module AXI_Master(
+module AXI_Master#(
+    parameter   DATA_WIDTH  = 64,             //数据位宽
+                ADDR_WIDTH  = 32,               //地址位宽              
+                ID_WIDTH    = 1,               //ID位宽
+                USER_WIDTH  = 1,             //USER位宽
+                STRB_WIDTH  = (DATA_WIDTH/8)    //STRB位宽
+)(
     /**********时钟&复位**********/
     input               ACLK,
     input      	        ARESETn,
     /*********写地址通道**********/
-    output reg [63:0]   AWADDR,
+    output reg [ADDR_WIDTH-1:0]   AWADDR,
     output reg [7:0]	AWLEN,
     output reg          AWVALID,
     input               AWREADY,
     /*********写数据通道**********/
-    output reg [1023:0] WDATA,
+    output reg [DATA_WIDTH-1:0] WDATA,
     output reg          WLAST,
     output reg          WVALID,
     input               WREADY,
@@ -36,11 +42,11 @@ module AXI_Master(
     input               BVALID,
     output reg          BREADY,
     /*********读地址通道**********/
-    output reg [63:0]   ARADDR,
+    output reg [ADDR_WIDTH-1:0]   ARADDR,
     output reg          ARVALID,
     input               ARREADY,
     /*********读数据通道**********/
-    input  [1023:0]     RDATA,
+    input  [DATA_WIDTH-1:0]     RDATA,
     input               RLAST,
     input               RVALID,
     output reg	 		RREADY,
@@ -48,9 +54,9 @@ module AXI_Master(
     input               en_w,
     input               en_r,
     input  [7:0]        awlen,
-    input  [63:0]       addr_start,
+    input  [ADDR_WIDTH-1:0]       addr_start,
     /**********读到数据***********/
-    output reg [1023:0] data_r
+    output reg [DATA_WIDTH-1:0] data_r
 );
 
     parameter   TCO =   1;
@@ -123,7 +129,7 @@ module AXI_Master(
             WDATA <= #TCO '0;
     end
 
-    logic [7:0] cnt_addr;
+    logic [ADDR_WIDTH-1:0] cnt_addr;
 
     always_ff@(posedge ACLK, negedge ARESETn)begin
         if(!ARESETn)
@@ -182,7 +188,7 @@ module AXI_Master(
     always_ff@(posedge ACLK, negedge ARESETn)begin
         if(!ARESETn)
             ARADDR <= #TCO '0;
-        else if(en_w)
+        else if(en_r)
             ARADDR <= #TCO addr_start;
         else
             ARADDR <= #TCO ARADDR;
